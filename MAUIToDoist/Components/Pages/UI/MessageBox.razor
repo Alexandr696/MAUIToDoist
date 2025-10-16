@@ -1,0 +1,72 @@
+﻿@using MAUIToDoist.Interfaces
+@using MAUIToDoist.Services
+
+
+@if (IsBlocked)
+{
+    <div class="overlay">
+        <div class="loader"></div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="toast-message @MessageClass">
+        @Message
+    </div>
+}
+
+@code {
+    [Inject] private BlazorViewService? Toast { get; set; }
+    private string? Message;
+    private string MessageClass = "";
+    private bool IsBlocked = false;
+
+    protected override void OnInitialized()
+    {
+        if (Toast == null) return;
+        Toast.OnMessage += ShowMessageAsync;
+        Toast.OnHide += HideMessageAsync;
+    }
+
+    private async Task ShowMessageAsync(string msg, ToastLevel level, int duration, bool blockScreen)
+    {
+        IsBlocked = blockScreen;
+        Message = msg;
+        MessageClass = level switch
+        {
+            ToastLevel.Info => "toast-info",
+            ToastLevel.Success => "toast-success",
+            ToastLevel.Warning => "toast-warning",
+            ToastLevel.Error => "toast-error",
+            _ => "toast-info"
+        };
+
+        StateHasChanged();
+
+        if (duration > 0)
+        {
+            await Task.Delay(duration);
+            Message = null;
+            IsBlocked = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HideMessageAsync()
+    {
+        Message = null;
+        IsBlocked = false;
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        if (Toast != null)
+        {
+            Toast.OnMessage -= ShowMessageAsync;
+            Toast.OnHide -= HideMessageAsync;
+        }
+    }
+}

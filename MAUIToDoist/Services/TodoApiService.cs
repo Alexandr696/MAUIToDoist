@@ -22,20 +22,29 @@ namespace MAUIToDoist.Services
             _toast = toast;
         }
 
-        public async Task<List<TodoItem>> GetTodosAsync()
+        public async Task<ApiResult<List<TodoItem>>> GetTodosAsync()
         {
-            List<TodoItem> result = [];
             try
             {
-                result = await _http.GetFromJsonAsync<List<TodoItem>>("api/todo") ?? [];
-                await _toast.ShowMessage("Список успешно загружен!");
+                var result = await _http.GetFromJsonAsync<List<TodoItem>>("api/todo");
+
+                return new ApiResult<List<TodoItem>>
+                {
+                    Status = ApiResultStatus.Success,
+                    Message = "Список успешно загружен!",
+                    Data = result
+                };
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Ошибка данных нет!");
-                 await _toast.ShowMessage("Ошибка данных нет!", ToastLevel.Warning);
+                _logger.LogError(ex, "Ошибка при загрузке списка задач");
+                return new ApiResult<List<TodoItem>>
+                {
+                    Status = ApiResultStatus.Error,
+                    Message = "Не удалось загрузить список задач!",
+                    Data = new List<TodoItem>()
+                };
             }
-            return result;
         }
 
         /*public async Task AddTodoAsync(TodoItem item)

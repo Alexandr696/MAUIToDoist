@@ -88,6 +88,7 @@ h1:focus {
 }
 
 
+
 .toast-message {
     position: fixed;
     bottom: 20px;
@@ -144,7 +145,6 @@ h1:focus {
         transform: translateY(20px);
     }
 }
-
 
 .overlay {
     position: fixed;

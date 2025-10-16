@@ -1,16 +1,27 @@
 ﻿@page "/"
 
 <h1>Hello, world!</h1>
-<button @onclick="Click" disabled="@IsLoading">
-    @(IsLoading ? "Загрузка..." : "cccc")
-</button>
-@if (!string.IsNullOrEmpty(Message))
-{
-    <div class="toast-message @MessageClass">@Message</div>
-}
-@if (IsLoading)
-{
-        <div class="overlay">
-            <div class="loader"></div>
-        </div>
-}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in List)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Title</td>
+                <td>@item.IsDone</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<button @onclick="Click">cccc</button>
+

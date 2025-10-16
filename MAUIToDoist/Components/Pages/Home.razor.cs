@@ -2,6 +2,7 @@
 using MAUIToDoist.Models;
 using MAUIToDoist.Services;
 using Microsoft.AspNetCore.Components;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MAUIToDoist.Components.Pages
@@ -9,59 +10,47 @@ namespace MAUIToDoist.Components.Pages
     public partial class Home
     {
         [Inject] private TodoApiService? Http { get; set; }
-        [Inject] private BlazorViewService? Toast { get; set; }
-        private List<TodoItem> List { get; set; } = new List<TodoItem>();
+        [Inject] private ICView? Toast { get; set; }
 
-        string? Message;
-        string MessageClass = "";
-        bool IsLoading = false;
-
-        protected override void OnInitialized()
-        {
-            if (Toast == null) return;
-            Toast.OnMessage += ShowMessageAsync;
-        }
-
-        private async Task ShowMessageAsync(string msg, ToastLevel level)
-        {
-            Message = msg;
-            MessageClass = level switch
-            {
-                ToastLevel.Info => "toast-info",
-                ToastLevel.Success => "toast-success",
-                ToastLevel.Warning => "toast-warning",
-                ToastLevel.Error => "toast-error",
-                _ => "toast-info"
-            };
-            StateHasChanged();
-            await Task.Delay(3000);
-            Message = null;
-            StateHasChanged();
-        }
-
-        public void Dispose()
-        {
-            if (Toast != null)
-                Toast.OnMessage -= ShowMessageAsync;
-        }
-
-        
+        private List<TodoItem> List { get; set; } = new();
 
         public async Task Click()
         {
-            if (Http == null) return;
+            if (Http == null || Toast == null)
+                return;
+
+            // 👇 1. Просто блокируем экран (без текста)
+            await Toast.ShowMessage("", ToastLevel.Info, duration: 0, blockScreen: true);
+
+            ApiResult<List<TodoItem>> result;
 
             try
             {
-                IsLoading = true;
-                StateHasChanged();
-                List = await Http.GetTodosAsync();
+                result = await Http.GetTodosAsync();
+                if (result.Data != null)
+                {
+                    List = result.Data;
+                    StateHasChanged();
+                }
             }
             finally
             {
-                IsLoading = false;
-                StateHasChanged();
+                // 👇 2. Разблокируем экран после завершения запроса
+                await Toast.HideMessage();
             }
+
+            // 👇 3. Показываем сообщение (уже после разблокировки)
+            var toastLevel = result.Status switch
+            {
+                ApiResultStatus.Success => ToastLevel.Success,
+                ApiResultStatus.Warning => ToastLevel.Warning,
+                ApiResultStatus.Error => ToastLevel.Error,
+                _ => ToastLevel.Info
+            };
+
+            await Toast.ShowMessage(result.Message ?? "Операция завершена", toastLevel);
+            if (result.Data != null)
+                List = result.Data;
         }
     }
 }

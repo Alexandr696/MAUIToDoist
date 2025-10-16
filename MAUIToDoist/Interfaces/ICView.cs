@@ -1,24 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MAUIToDoist.Interfaces
+﻿namespace MAUIToDoist.Interfaces
 {
+    public interface ICView
+    {
+        /// <summary>
+        /// Показать сообщение с возможной блокировкой экрана
+        /// </summary>
+        Task ShowMessage(string message, ToastLevel level = ToastLevel.Info, int duration = 3000, bool blockScreen = false);
+
+        /// <summary>
+        /// Принудительно скрыть сообщение и разблокировать экран
+        /// </summary>
+        Task HideMessage();
+    }
+
     public enum ToastLevel
     {
         Info,
         Success,
         Warning,
         Error
-    }
-    public interface ICView
-    {
-        /// <summary>
-        /// Показать сообщение пользователю (например, alert, toast или div на странице)
-        /// </summary>
-        /// <param name="message">Текст сообщения</param>
-        Task ShowMessage(string message, ToastLevel level = ToastLevel.Success);
     }
 }
